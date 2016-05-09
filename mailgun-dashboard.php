@@ -25,9 +25,32 @@ $result = $mg->get("$domain/log", array('limit' => 25, 'skip'  => 0));
 $httpResponseCode = $result->http_response_code;
 $httpResponseBody = $result->http_response_body;
 
-# Iterate through the results and echo the message IDs.
-$logItems = $result->http_response_body->items;
-foreach($logItems as $logItem){
-    echo $logItem->message_id . "\n";
-}
+## Iterate through the results and echo the message IDs.
+#$logItems = $result->http_response_body->items;
+#foreach($logItems as $logItem){
+    #echo $logItem->message_id . "\n";
+#}
 
+#var_dump($result);
+
+/**
+ * Add a widget to the dashboard.
+ *
+ * This function is hooked into the 'wp_dashboard_setup' action below.
+ */
+function wrdsb_mailgun_add_dashboard_widgets() {
+	wp_add_dashboard_widget(
+        	'wrdsb_mailgun_dashboard_widget',         // Widget slug.
+		'Example Dashboard Widget',         // Title.
+		'wrdsb_mailgun_dashboard_widget_function' // Display function.
+	);
+}
+add_action( 'wp_dashboard_setup', 'wrdsb_mailgun_add_dashboard_widgets' );
+
+/**
+ * Create the function to output the contents of our Dashboard Widget.
+ */
+function wrdsb_mailgun_dashboard_widget_function() {
+	// Display whatever it is you want to show.
+	echo "Hello World, I'm a great Dashboard Widget";
+}
