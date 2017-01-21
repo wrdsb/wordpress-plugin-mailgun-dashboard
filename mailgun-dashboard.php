@@ -17,19 +17,50 @@ use Mailgun\Mailgun;
 $mg = new Mailgun(MAILGUN_APIKEY);
 $domain = MAILGUN_DOMAIN;
 
-# For testing our connection to the API:
-# Get the last 25 log entries, and dump
-# info to the browser.
-$result = $mg->get("$domain/log", array('limit' => 25, 'skip'  => 0));
+function wrdsb_mailgun_get_current_list_address() {
+	$url = parse_url(get_bloginfo('url'));
 
-$httpResponseCode = $result->http_response_code;
-$httpResponseBody = $result->http_response_body;
+	if ($url['host'] == 'www.wrdsb.ca'):
+		return 'www@'.MAILGUN_DOMAIN;
+	elseif ($url['host'] == 'schools.wrdsb.ca'):
+		return substr($url['path'], 1).'@'.MAILGUN_DOMAIN;
+	else:
+		return explode(".", $url['host'])[0].'-'.substr($url['path'], 1).'@'.MAILGUN_DOMAIN;
+	endif;
+}
 
-## Iterate through the results and echo the message IDs.
-#$logItems = $result->http_response_body->items;
-#foreach($logItems as $logItem){
-    #echo $logItem->message_id . "\n";
-#}
+function wrdsb_mailgun_get_current_list_subscriber_count() {
+	$mg = new Mailgun(MAILGUN_APIKEY);
+	$domain = MAILGUN_DOMAIN;
+	
+	$address = wrdsb_mailgun_get_current_list_address();
+	$result = $mg->get("lists/$address");
+
+	$httpResponseCode = $result->http_response_code;
+	$httpResponseBody = $result->http_response_body;
+
+	//return print_r($httpResponseBody, true);
+	return $httpResponseBody->list->members_count;
+}
+
+function wrdsb_mailgun_get_current_list_deliveries() {
+	$mg = new Mailgun(MAILGUN_APIKEY);
+	$domain = MAILGUN_DOMAIN;
+	$stats = '';
+
+	$address = wrdsb_mailgun_get_current_list_address();
+	$result = $mg->get("$domain/tags/$address/stats", array('event' => 'delivered'));
+
+	$httpResponseCode = $result->http_response_code;
+	$httpResponseBody = $result->http_response_body;
+
+	## Iterate through the results and echo the message IDs.
+	$resultItems = $result->http_response_body->stats;
+	foreach($resultItems as $resultItem){
+	     $stats .= $resultItem->time.': '.$resultItem->delivered->total . "\n";
+	}
+	return $stats;
+}
 
 #var_dump($result);
 
@@ -41,7 +72,7 @@ $httpResponseBody = $result->http_response_body;
 function wrdsb_mailgun_add_dashboard_widgets() {
 	wp_add_dashboard_widget(
         	'wrdsb_mailgun_dashboard_widget',         // Widget slug.
-		'Example Dashboard Widget',         // Title.
+		'Mailgun Status',         // Title.
 		'wrdsb_mailgun_dashboard_widget_function' // Display function.
 	);
 }
@@ -51,6 +82,7 @@ add_action( 'wp_dashboard_setup', 'wrdsb_mailgun_add_dashboard_widgets' );
  * Create the function to output the contents of our Dashboard Widget.
  */
 function wrdsb_mailgun_dashboard_widget_function() {
-	// Display whatever it is you want to show.
-	echo "Hello World, I'm a great Dashboard Widget";
+	echo '<div>'. wrdsb_mailgun_get_current_list_address() .'</div>';
+	//echo '<div>'. wrdsb_mailgun_get_current_list_deliveries() .'</div>';
+	echo '<div>'. wrdsb_mailgun_get_current_list_subscriber_count() .'</div>';
 }
