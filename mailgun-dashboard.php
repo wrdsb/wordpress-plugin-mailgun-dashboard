@@ -29,20 +29,6 @@ function wrdsb_mailgun_get_current_list_address() {
 	endif;
 }
 
-function wrdsb_mailgun_get_current_list_subscriber_count() {
-	$mg = new Mailgun(MAILGUN_APIKEY);
-	$domain = MAILGUN_DOMAIN;
-	
-	$address = wrdsb_mailgun_get_current_list_address();
-	$result = $mg->get("lists/$address");
-
-	$httpResponseCode = $result->http_response_code;
-	$httpResponseBody = $result->http_response_body;
-
-	//return print_r($httpResponseBody, true);
-	return $httpResponseBody->list->members_count;
-}
-
 function wrdsb_mailgun_get_current_list_deliveries() {
 	$mg = new Mailgun(MAILGUN_APIKEY);
 	$domain = MAILGUN_DOMAIN;
@@ -62,6 +48,36 @@ function wrdsb_mailgun_get_current_list_deliveries() {
 	return $stats;
 }
 
+function wrdsb_mailgun_get_current_list_info() {
+	$mg = new Mailgun(MAILGUN_APIKEY);
+	$domain = MAILGUN_DOMAIN;
+	$stats = '';
+
+	$address = wrdsb_mailgun_get_current_list_address();
+	$result = $mg->get("$domain/lists/$address");
+
+	$httpResponseCode = $result->http_response_code;
+	$httpResponseBody = $result->http_response_body;
+
+	$list_info = $result->http_response_body->list;
+	return $list_info;
+}
+
+function wrdsb_mailgun_get_current_list_members_count() {
+	$mg = new Mailgun(MAILGUN_APIKEY);
+
+	$address = wrdsb_mailgun_get_current_list_address();
+	$result = $mg->get("https://api.mailgun.net/v3/lists/$address");
+
+	$httpResponseCode = $result->http_response_code;
+	$httpResponseBody = $result->http_response_body;
+
+	## Iterate through the results and echo the message IDs.
+	$list = $result->http_response_body->list;
+	$members_count = $list->members_count;
+	return $members_count;
+}
+
 #var_dump($result);
 
 /**
@@ -72,7 +88,7 @@ function wrdsb_mailgun_get_current_list_deliveries() {
 function wrdsb_mailgun_add_dashboard_widgets() {
 	wp_add_dashboard_widget(
         	'wrdsb_mailgun_dashboard_widget',         // Widget slug.
-		'Mailgun Status',         // Title.
+		'Email Subscriptions Status',         // Title.
 		'wrdsb_mailgun_dashboard_widget_function' // Display function.
 	);
 }
@@ -82,7 +98,7 @@ add_action( 'wp_dashboard_setup', 'wrdsb_mailgun_add_dashboard_widgets' );
  * Create the function to output the contents of our Dashboard Widget.
  */
 function wrdsb_mailgun_dashboard_widget_function() {
-	echo '<div>'. wrdsb_mailgun_get_current_list_address() .'</div>';
-	//echo '<div>'. wrdsb_mailgun_get_current_list_deliveries() .'</div>';
-	echo '<div>'. wrdsb_mailgun_get_current_list_subscriber_count() .'</div>';
+	echo '<p><strong>"From" name:</strong> '. get_bloginfo('name') ."</p>";
+	echo '<p><strong>"From" address:</strong> '. wrdsb_mailgun_get_current_list_address() ."</p>";
+	echo '<p><strong>Subscriber count:</strong> '. wrdsb_mailgun_get_current_list_members_count() ."</p>";
 }
