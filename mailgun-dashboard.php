@@ -18,9 +18,14 @@ $mg = new Mailgun(MAILGUN_APIKEY);
 $domain = MAILGUN_DOMAIN;
 
 function wrdsb_mailgun_get_current_list_address() {
-	$blog_details = get_blog_details(get_current_blog_id());
-	$my_domain = $blog_details->domain;
-	$my_slug = str_replace('/','',$blog_details->path);
+	if ( is_multisite() ) {
+		$blog_details = get_blog_details(get_current_blog_id());
+		$my_domain = $blog_details->domain;
+		$my_slug = str_replace('/','',$blog_details->path);
+	} else {
+		$parsed = parse_url(get_bloginfo('url'));
+		$my_domain = $parsed['host'];
+	}
 	switch ($my_domain) {
 		case "www.wrdsb.ca":
 			if (empty($my_slug)) {
