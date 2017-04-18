@@ -5,7 +5,7 @@
 * Description: Dashboard widgets and admin pages for Mailgun status and stats
 * Author: WRDSB
 * Author URI: https://github.com/wrdsb
-* Version: 0.0.3
+* Version: 0.0.4
 * License: GPLv2 or later
 * GitHub Plugin URI: wrdsb/wordpress-plugin-mailgun-dashboard
 * GitHub Branch: master
@@ -50,6 +50,12 @@ function wrdsb_mailgun_get_current_list_address() {
 				return "teachers@hedwig.wrdsb.ca";
 			} else {
 				return "teachers-".$my_slug."@hedwig.wrdsb.ca";
+			}
+		case "blogs.wrdsb.ca":
+			if (empty($my_slug)) {
+				return "blogs@hedwig.wrdsb.ca";
+			} else {
+				return "blogs-".$my_slug."@hedwig.wrdsb.ca";
 			}
 		case "llc.wrdsb.ca":
 			return "llc@hedwig.wrdsb.ca";
