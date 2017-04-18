@@ -18,15 +18,45 @@ $mg = new Mailgun(MAILGUN_APIKEY);
 $domain = MAILGUN_DOMAIN;
 
 function wrdsb_mailgun_get_current_list_address() {
-	$url = parse_url(get_bloginfo('url'));
-
-	if ($url['host'] == 'www.wrdsb.ca'):
-		return 'www@'.MAILGUN_DOMAIN;
-	elseif ($url['host'] == 'schools.wrdsb.ca'):
-		return substr($url['path'], 1).'@'.MAILGUN_DOMAIN;
-	else:
-		return explode(".", $url['host'])[0].'-'.substr($url['path'], 1).'@'.MAILGUN_DOMAIN;
-	endif;
+	$blog_details = get_blog_details(get_current_blog_id());
+	$my_domain = $blog_details->domain;
+	$my_slug = str_replace('/','',$blog_details->path);
+	switch ($my_domain) {
+		case "www.wrdsb.ca":
+			if (empty($my_slug)) {
+				return "www@hedwig.wrdsb.ca";
+			} else {
+				return "www-".$my_slug."@hedwig.wrdsb.ca";
+			}
+		case "staff.wrdsb.ca":
+			if (empty($my_slug)) {
+				return "staff@hedwig.wrdsb.ca";
+			} else {
+				return "staff-".$my_slug."@hedwig.wrdsb.ca";
+			}
+		case "schools.wrdsb.ca":
+			if (empty($my_slug)) {
+				return "schools@hedwig.wrdsb.ca";
+			} else {
+				return $my_slug."@hedwig.wrdsb.ca";
+			}
+		case "teachers.wrdsb.ca":
+			if (empty($my_slug)) {
+				return "teachers@hedwig.wrdsb.ca";
+			} else {
+				return "teachers-".$my_slug."@hedwig.wrdsb.ca";
+			}
+		case "llc.wrdsb.ca":
+			return "llc@hedwig.wrdsb.ca";
+		case "wcssaa.ca":
+			return "wcssaa@hedwig.wrdsb.ca";
+		case "labs.wrdsb.ca":
+			return "wplabs-mailgun-lab@hedwig.wrdsb.ca";
+		case "www.stswr.ca":
+			return "www@bigbus.stswr.ca";
+		default:
+			return "no-list@hedwig.wrdsb.ca";
+		}
 }
 
 function wrdsb_mailgun_get_current_list_deliveries() {
